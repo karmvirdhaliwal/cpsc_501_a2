@@ -6,6 +6,8 @@
 #include <fstream>
 #include "functions.h"
 
+//code from numericalrecipes in c textbook provided by professor
+#define SWAP(a,b) tempr=(a);(a)=(b);(b)=tempr
 
 //  Standard sample rate in Hz
 #define SAMPLE_RATE     	44100.0
@@ -32,7 +34,7 @@ using namespace std;
 Writes the header for a WAV file with the given attributes to 
  the provided filestream
 */
-
+//code from testtone.cpp, given to us by the professor with permission to use 
 void writeWavFileHeader(int channels, int numberSamples, double outputRate, FILE *outputFile) {
     // Note: channels is not currently used. You will need to add this functionality
 	// yourself for the bonus part of the assignment
@@ -95,7 +97,7 @@ void writeWavFileHeader(int channels, int numberSamples, double outputRate, FILE
 Creates a WAV file with the contents of the provided outputArray as the samples, and writes
 it to the given filename
  */
-
+//code from testtone.cpp, given to us by the professor with permission to use 
 void writeWavFile(double *outputArray, int outputArraySize, int channels, char *filename) {
     // Note: channels is not currently used. You will need to add this functionality
 	// yourself for the bonus part of the assignment
@@ -135,6 +137,7 @@ void writeWavFile(double *outputArray, int outputArraySize, int channels, char *
 
 
 //writes an integer to the provided stream in little-endian form
+//code from testtone.cpp, given to us by the professor with permission to use 
 size_t fwriteIntLSB(int data, FILE *stream) {
     unsigned char array[4];
 
@@ -147,6 +150,7 @@ size_t fwriteIntLSB(int data, FILE *stream) {
 
 
 //reads an integer from the provided stream in little-endian form
+//code from testtone.cpp, given to us by the professor with permission to use 
 int freadIntLSB(FILE *stream) {
     unsigned char array[4];
 
@@ -160,6 +164,7 @@ int freadIntLSB(FILE *stream) {
 
 
 //writes a short integer to the provided stream in little-endian form
+//code from testtone.cpp, given to us by the professor with permission to use 
 size_t fwriteShortLSB(short int data, FILE *stream) {
     unsigned char array[2];
 
@@ -170,6 +175,7 @@ size_t fwriteShortLSB(short int data, FILE *stream) {
 
 
 //reads a short integer from the provided stream in little-endian form
+//code from testtone.cpp, given to us by the professor with permission to use 
 short int freadShortLSB(FILE *stream) {
     unsigned char array[2];
 
@@ -181,6 +187,7 @@ short int freadShortLSB(FILE *stream) {
     return data;
 }
 
+//code from the T04 lecture recording
 void readWavFileHeader(int *channels, int *numSamples, FILE *inputFile){
 
     int sampleRate;
@@ -220,6 +227,7 @@ void readWavFileHeader(int *channels, int *numSamples, FILE *inputFile){
 
 }
 
+//code from the t04 lecture recording
 double* readWavFile(int *arraySize, int *channels, char *filename){
 
     double *array;
@@ -278,14 +286,14 @@ void convolve(char *inputFileName, char *irFileName, char *outputFileName){
 
     double *inputArray;
     double *irArray;
-
+    //reading
     inputArray = readWavFile(&inputArraySize, &channels, inputFileName);
     irArray = readWavFile(&irArraySize, &channels, irFileName);
 
     outputArraySize = inputArraySize + irArraySize -1;
 
     double *output = new double[outputArraySize];
-
+    //writing
     for(int i = 0; i < irArraySize; i++){
         for(int j = 0; j < inputArraySize; j++){
             output[i+j] += irArray[i] * inputArray[j];
@@ -293,7 +301,7 @@ void convolve(char *inputFileName, char *irFileName, char *outputFileName){
     }
 
     double largest = 0.0;
-
+    //scaling
     for (int i = 0; i < outputArraySize; i++)
     {
         if(abs(output[i]) > largest){
@@ -308,7 +316,167 @@ void convolve(char *inputFileName, char *irFileName, char *outputFileName){
 
     writeWavFile(output, outputArraySize, channels, outputFileName);
 
+}
+//code from numericalrecipes in c textbook provided by professor
+void four1(double data[], unsigned long nn, int isign){
 
+    unsigned long n, mmax, m, j, istep, i;
+    double wtemp, wr, wpr, wpi, wi, theta;
+    double tempr, tempi;
+
+    //printf("inside four1\n");
+
+    n = nn << 1;
+    j = 1;
+
+    for(i=1; i < n; i+=2 ){
+        if(j > i){
+            SWAP(data[j],data[i]);
+            SWAP(data[j+1],data[i+1]);
+        }
+        m = nn;
+        while(m >= 2 && j > m){
+            j -=m;
+            m >>= 1;
+        }
+        j+=m;
+    }
+    mmax = 2;
+    while(n > mmax){
+        istep = mmax << 1;
+        theta=isign*(6.28318530717959/mmax);
+        wtemp=sin(0.5*theta);
+        wpr = -2.0*wtemp*wtemp;
+        wpi=sin(theta);
+        wr=1.0;
+        wi=0.0;
+        for (m=1;m<mmax;m+=2){
+            for (i=m;i<=n;i+=istep){
+                j=i+mmax;
+                tempr=wr*data[j]-wi*data[j+1];
+                tempi=wr*data[j+1]+wi*data[j];
+                data[j]=data[i]-tempr;
+                data[j+1]=data[i+1]-tempi;
+                data[i] += tempr;
+                data[i+1] += tempi;
+
+            }
+            wr=(wtemp=wr)*wpr-wi*wpi+wr;
+            wi=wi*wpr+wtemp*wpi+wi;
+        }
+        mmax=istep;
+    }
+    //printf("last line of four1\n");
+}
+
+
+
+void convolveFFT(char *inputFileName, char *irFileName, char *outputFileName){
+    int inputArraySize;
+    int irArraySize;
+    int outputArraySize;
+    int channels;
+    int complexInputArraySize;
+    int complexIrArraySize;
+
+
+    double *inputArray;
+    double *irArray;
+    //reading
+    inputArray = readWavFile(&inputArraySize, &channels, inputFileName);
+    irArray = readWavFile(&irArraySize, &channels, irFileName);
+    //printf("finished reading\n");
+
+    complexInputArraySize = 2*inputArraySize;
+    complexIrArraySize = 2*irArraySize;
+
+    double *complexInputArray = new double[complexInputArraySize];
+    double *complexIrArray = new double[complexIrArraySize];
+    //printf("before for loop\n");
+    //creating complex arrays
+    for(int i = 0; i < inputArraySize; i++){
+       // printf("in for loop\n");
+        complexInputArray[2*i] = inputArray[i];
+        complexInputArray[2*i+1] = 0;
+    }
+    //printf("after first for loop\n");
+    for (int i = 0; i < irArraySize; i++)
+    {
+        //printf("in seconf for loop\n");
+       complexIrArray[2*i] = irArray[i];
+       complexIrArray[2*i+1] = 0;
+    }
+    //printf("finished making complex arrays.\n");
+
+    int next;
+    //padding
+    if(complexInputArraySize > complexIrArraySize){
+         next = pow(2, ceil(log(complexInputArraySize)/log(2)));
+    }else{
+        next = pow(2, ceil(log(complexIrArraySize)/log(2)));
+    }
+
+    //printf("next= %d \n", next);
+    double *complexFinalInputArray = new double[next];
+    double *complexFinalIrArray = new double[next];
+
+    for (int i = 0; i < complexInputArraySize; i++)
+    {
+        complexFinalInputArray[i] = complexInputArray[i];
+    }
+
+    for (int i = 0; i < complexIrArraySize; i++)
+    {
+        complexFinalIrArray[i] = complexIrArray[i];
+    }
+    
+    //printf("got to line 419\n");
+    //performing fft
+    four1(complexFinalInputArray, next/2, 1);
+    four1(complexFinalIrArray, next/2, 1);
+
+    //printf("got past four1 functions\n");
+    //writing
+    double *outputArrayComplex = new double[next];
+    for(int i = 0; i < next; i++){
+
+        outputArrayComplex[i] = complexFinalInputArray[i] * complexFinalIrArray[i];
+    }
+
+    //printf("got to inverse four1 call\n");
+    //inverse fft 
+    four1(outputArrayComplex, next/2, -1);
+    //printf("got past inverse four1 call\n");
+    double *outputArrayComplex2 = new double[next/2];
+    //unpadding
+    for(int i = 0; i < next/2; i++){
+
+        outputArrayComplex2[i] = outputArrayComplex[2*i];
+    }
+
+    outputArraySize = inputArraySize + irArraySize - 1;
+
+    double *outputArray = new double[outputArraySize];
+
+    for(int i = 0; i < outputArraySize; i++){
+
+        outputArray[i] =  outputArrayComplex2[i];
+    }
+
+     double largest = 0.0;
+
+    for (int i = 0; i < outputArraySize; i++)
+    {
+        if(abs(outputArray[i]) > largest){
+            largest = outputArray[i];
+        }
+    }//scaling
+    for (int i = 0; i < outputArraySize; i++)
+    {
+        outputArray[i] = ((double) outputArray[i]) / largest;
+    }
+
+    writeWavFile(outputArray, outputArraySize, channels, outputFileName);
 
 }
 
@@ -326,8 +494,10 @@ int main(int argc, char** argv){
     irFileName = argv[2];
     outputFileName = argv[3];
 
-    printf("Convolving.");
-    convolve(inputFileName, irFileName, outputFileName);
+    printf("Convolving.\n");
+    //uncomment the line below and comment out line 500 to run the convolve program without the fft
+    //convolve(inputFileName, irFileName, outputFileName);
+    convolveFFT(inputFileName, irFileName, outputFileName);
     printf("finished.");
     exit(0);
 }
