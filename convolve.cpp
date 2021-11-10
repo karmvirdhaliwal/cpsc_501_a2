@@ -368,7 +368,7 @@ void four1(double data[], unsigned long nn, int isign){
     }
     //printf("last line of four1\n");
 }
-unsigned int log2(unsigned int x){
+ int log2(int x){
     if(x < 2) {return 0;}
     else if(x < 4) {return 1;}
     else if(x < 8) {return 2;}
@@ -446,12 +446,15 @@ void convolveFFT(char *inputFileName, char *irFileName, char *outputFileName){
     int next;
     //padding
     if(complexInputArraySize > complexIrArraySize){
-         next = pow(2, log2(complexInputArraySize));
+         next = pow(2, (log2(inputArraySize) +1));
     }else{
-        next = pow(2, log2(complexIrArraySize));
+        next = pow(2, (log2(irArraySize)+1));
     }
 
+    
     //printf("next= %d \n", next);
+    
+
     double *complexFinalInputArray = new double[next];
     double *complexFinalIrArray = new double[next];
 
