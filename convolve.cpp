@@ -457,20 +457,17 @@ void convolveFFT(char *inputFileName, char *irFileName, char *outputFileName){
     outputArraySize = inputArraySize + irArraySize - 1;
 
     double *outputArray = new double[outputArraySize];
+    double largest = 0.0;
 
     for(int i = 0; i < outputArraySize; i++){
 
         outputArray[i] =  outputArrayComplex2[i];
-    }
-
-     double largest = 0.0;
-
-    for (int i = 0; i < outputArraySize; i++)
-    {
         if(abs(outputArray[i]) > largest){
             largest = outputArray[i];
         }
-    }//scaling
+    }
+    
+    //scaling
     for (int i = 0; i < outputArraySize; i++)
     {
         outputArray[i] = ((double) outputArray[i]) / largest;
