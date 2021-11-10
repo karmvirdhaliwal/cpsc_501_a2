@@ -368,6 +368,41 @@ void four1(double data[], unsigned long nn, int isign){
     }
     //printf("last line of four1\n");
 }
+unsigned int log2(unsigned int x){
+    if(x < 2) {return 0;}
+    else if(x < 4) {return 1;}
+    else if(x < 8) {return 2;}
+    else if(x < 16) {return 3;}
+    else if(x < 32) {return 4;}
+    else if(x < 64) {return 5;}
+    else if(x < 128) {return 6;}
+    else if(x < 256) {return 7;}
+    else if(x < 512) {return 8;}
+    else if(x < 1024) {return 9;}
+    else if(x < 2048) {return 10;}
+    else if(x < 4096) {return 11;}
+    else if(x < 8192) {return 12;}
+    else if(x < 16384) {return 13;}
+    else if(x < 32768) {return 14;}
+    else if(x < 65536) {return 15;}
+    else if(x < 131072) {return 16;}
+    else if(x < 262144) {return 17;}
+    else if(x < 524288) {return 18;}
+    else if(x < 1048576) {return 19;}
+    else if(x < 2097152) {return 20;}
+    else if(x < 4194304) {return 21;}
+    else if(x < 8388608) {return 22;}
+    else if(x < 16777216) {return 23;}
+    else if(x < 33554432) {return 24;}
+    else if(x < 67108864) {return 25;}
+    else if(x < 134217728) {return 26;}
+    else if(x < 268435456) {return 27;}
+    else if(x < 536870912) {return 28;}
+    else if(x < 1073741824) {return 29;}
+    else if(x < 2147483648) {return 30;}
+    else {return 31;}
+
+}
 
 
 
@@ -411,9 +446,9 @@ void convolveFFT(char *inputFileName, char *irFileName, char *outputFileName){
     int next;
     //padding
     if(complexInputArraySize > complexIrArraySize){
-         next = pow(2, ceil(log(complexInputArraySize)/log(2)));
+         next = pow(2, log2(complexInputArraySize));
     }else{
-        next = pow(2, ceil(log(complexIrArraySize)/log(2)));
+        next = pow(2, log2(complexIrArraySize));
     }
 
     //printf("next= %d \n", next);
