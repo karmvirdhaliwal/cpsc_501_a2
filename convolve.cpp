@@ -429,17 +429,17 @@ void convolveFFT(char *inputFileName, char *irFileName, char *outputFileName){
     double *complexIrArray = new double[complexIrArraySize];
     //printf("before for loop\n");
     //creating complex arrays
-    for(int i = 0; i < inputArraySize; i++){
+    for(int i = 0; i < complexInputArraySize; i++){
        // printf("in for loop\n");
-        complexInputArray[2*i] = inputArray[i];
-        complexInputArray[2*i+1] = 0.0;
+        complexInputArray[i] = inputArray[i/2];
+        complexInputArray[i+1] = 0.0;
     }
     //printf("after first for loop\n");
-    for (int i = 0; i < irArraySize; i++)
+    for (int i = 0; i < complexIrArraySize; i++)
     {
         //printf("in seconf for loop\n");
-       complexIrArray[2*i] = irArray[i];
-       complexIrArray[2*i+1] = 0.0;
+       complexIrArray[i] = irArray[i/2];
+       complexIrArray[i+1] = 0.0;
     }
     //printf("finished making complex arrays.\n");
 
